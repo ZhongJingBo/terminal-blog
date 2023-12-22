@@ -1,0 +1,283 @@
+## 执行上下文
+
+**JavaScript 在执行语句前，创造了一个为代码执行的环境—— 执行上下文**
+
+执行上下文中包括 文本环境 thisValue。 文本环境中记录了要执行的函数等等。
+
+**执行栈**
+
+- 执行栈栈顶的执行上下文称为当前执行上下文
+- JS 代码总是会在当前上下文中运行
+- 意思是 JS 代码中需要用到的资源，到当前上下文上查找。
+
+**4 种情况下会创建新的执行上下文**
+
+- 进入全局代码
+- 进入 function 函数体代码
+- 进入 eval 函数参数指定的代码
+- 进入 module 代码
+
+var 和 function 声明创建在全局对象中，而 let const class 声明的变量创建在全局 scope 中 会先到 scope 中找变量，查找不到在到全局对象查找。
+
+### 全局作用域
+
+**JavaScirpt 执行语句过程**
+Step1: 创建全局上下文，并加入栈顶
+Step2:分析：
+
+- 找到所有的非函数中的 var 声明
+- 找到所有的顶级函数声明
+- 找到顶级 let const class 声明
+
+Step3：名字重复处理
+Step4: 创建绑定
+
+- 登记并初始化 var 为 undefined
+- 顶级函数声明：登记初始化 function 名字，并初始化为新创建函数对象
+- 块级中函数声明：登记名字，初始化为 undefined
+- 登记 let const class，但未初始化
+
+Step5: 执行语句
+
+函数对象‘体内’会保存，函数创建时的执行上下文的文本环境
+
+临时性死区（TDZ） 是指变量提升了 但是没有初始化 不能使用，使用就会报错的现象。
+
+**作用域时是解析（查找）变量名的一个集合，就是当前运行上下文（也可以是当前上下文的词法环境）**
+全局作用域就是全局运行上下文
+函数作用域就是函数运行上下文
+
+**作用域**
+函数调用时的执行上下文看“身世” 函数在哪里创建，就保存哪里的运行上下文
+函数的作用域是在创建的时候决定的 而不是调用的时候决定
+并非根据调用嵌套形成（运行上下文）作用域链，而是根据函数创建嵌套形成作用域链，也就是函数书写的位置形成作用域链，因此称为词法作用域
+
+### 块级作用域
+
+简单理解就是 大括号{ } 括起来的区 域就是一个块级作用域
+当代码运行到代码块的时候：
+Step1:创建一个新的记录环境，链接在原来记录之前。
+Step2：分析：
+
+- 找到所有顶级函数声明
+- 找到 let const 声明
+
+Step3:
+
+- functiion 和 let const 名字不重复
+- let 和 const 之间名字不重复
+
+Step4: 创建绑定
+
+- 登记 function 名字，并初始化为新创建函数对象。
+- 登记 let const 但并未初始化
+
+Step5： 执行语句
+当块级作用域执行完成后，js 引擎会把原来的文本环境进行销毁，重新链接回原来的环境。
+在块级作用域中创建的顶级函数，也会进行变量提升，但是没有马上创建函数，所以是 undefined。
+在全局作用域中创建顶级函数，会变量提升并且马上创建函数。
+
+**let 和 var 循环执行**
+let 每一次执行都会创建一个新的文本环境（记录环境）链接全局上下文中， 也就是为什么 for 循环中使用 var 和 let 同样循环五次 var 会打印五个 5， let 会打印 12345
+
+### 总结：
+
+- javaScript 变量先“登记”后使用，登记的地方叫执行上下文
+  - var 变量和函数声明“登记”时，创建在全局对象上，同时初始化，有“提升”现象
+  - let const class 声明“登记”时，创建在“全局快”上面，未初始化，不能“提前”使用。
+  - 作用域可以理解为当前执行上下文
+- 四种情况会创建新的执行上下文：全局，function，eval，module
+- 函数的作用域，只与其被创建时的执行上下文关联
+
+## 闭包
+
+定义：闭包就是函数能够记住并访问它的词法作用域，即使当这个函数在它的词法作用域之外执行时。
+
+```javascript
+function foo() {
+  var a = 2;
+
+  function bar() {
+    console.log(a);
+  }
+
+  return bar;
+}
+
+var baz = foo();
+
+baz(); // 2
+```
+
+foo() 执行完成后，一般来说 foo()内部的作用域会消失，JS 引擎会启用垃圾回收器，在内存不再被使用的时候会回收它，通常来说 foo()的作用域会被回收，但是在闭包的作用下，内部的作用域依然在被 bar 所使用。
+
+有赖于它被声明的位置，bar()拥有着一个词法作用域闭包覆盖着 foo（）的内部作用域，闭包为了能使 bar（）在任意的时刻可以引用这个作用域而保持它的存在。
+
+利用闭包形成块级作用域
+
+```javascript
+for (var i = 1; i <= 5; i++) {
+  (function (j) {
+    setTimeout(function timer() {
+      console.log(j);
+    }, j * 1000);
+  })(i);
+}
+```
+
+通过立即调用函数 形成块级作用域保存传入的数据， 实现间隔一秒依次打印 1，2，3，4，5。
+
+**模块**
+模块也是借用闭包的形式来实现的。
+
+```javascript
+var foo = (function CoolModule(id) {
+  function change() {
+    // 修改公有 API
+    publicAPI.identify = identify2;
+  }
+
+  function identify1() {
+    console.log(id);
+  }
+
+  function identify2() {
+    console.log(id.toUpperCase());
+  }
+
+  var publicAPI = {
+    change: change,
+    identify: identify1,
+  };
+
+  return publicAPI;
+})("foo module");
+
+foo.identify(); // foo module
+foo.change();
+foo.identify(); // FOO MODULE
+```
+
+**现代的模块**
+
+```javascript
+var MyModules = (function Manager() {
+	var modules = {};
+
+	function define(name, deps, impl) {
+		for (var i=0; i<deps.length; i++) {
+			deps[i] = modules[deps[i]];
+		}
+		modules[name] = impl.apply( impl, deps );
+	}
+
+	function get(name) {
+		return modules[name];
+	}
+
+	return {
+		define: define,
+		get: get
+	};
+
+
+
+  MyModules.define( "bar", [], function(){
+	function hello(who) {
+		return "Let me introduce: " + who;
+	}
+
+	return {
+		hello: hello
+	};
+} );
+
+MyModules.define( "foo", ["bar"], function(bar){
+	var hungry = "hippo";
+
+	function awesome() {
+		console.log( bar.hello( hungry ).toUpperCase() );
+	}
+
+	return {
+		awesome: awesome
+	};
+} );
+
+var bar = MyModules.get( "bar" );
+var foo = MyModules.get( "foo" );
+
+console.log(
+	bar.hello( "hippo" )
+); // Let me introduce: hippo
+
+foo.awesome(); // LET ME INTRODUCE: HIPPO
+```
+
+通过闭包 利用 modules 把定义的各个模块保存下来，实现模块相互间调用。
+
+我们如何在函数即是值，而且可以随意传递的词法作用域环境中编写代码。
+**闭包就是当一个函数即使是在他词法作用域之外被调用时，也可以记住并访问它的词法作用域。**
+
+**闭包的缺点及解决：**
+
+1. 函数执行完后，函数内的局部变量没有释放，占用内存时间后变长
+2. 容易造成内存泄漏。
+
+解决：减少使用闭包，及时释放 即：f = null
+
+## 闭包&内存泄露
+
+```javascript
+// 1: 全局词法环境global.LE = {t,fun}
+let t = 111;
+function fun() {
+  // 3: fun.LE = {a,b,fun1}
+  let a = 1;
+  let b = 2;
+  function fun1() {
+    // 5: fun1.LE = {c}
+    let c = 3;
+  }
+  // 4: fun1.[[Scopes]] = [global.LE, fun.LE]
+}
+// 2: fun.[[Scopes]] = [global.LE]
+fun();
+```
+
+### 作用域链[[scopes]]
+
+[[scopes]] 就像一个数组一样，每一个函数的[[scopes]]中都存在当前函数的 LE 和上级函数的[[scopes]]。
+在函数运行时会优先取距离当前函数 LE 近的变量值，这就是作用域的就近原则。
+**每一个词法作用域都会有一个 outer 属性指向其上级词法作用域，根据这个 outer 链路完全可以构成作用域链，为什么还需要 Closure。**
+
+这就会涉及到内存和内存泄露问题，如果只通过 outer 链路来实现作用域链，那么存在一个闭包时，就会导致整个作用域链中的所有词法环境都无法回收，如果只使用了父环境中的一个变量 v8 为了一个内存付出这么大的代价很不值得。[[scopes]]+Closure 就是他们的解决方案。
+
+在为一个函数绑定词法作用域时，并不会粗暴的将父函数的 LE 放入[[scopes]]，而是会分析这个函数都使用了父函数 LE 中的哪些变量，而这些可能会被使用到的变量存储在一个叫做 Closure 的对象中，每一个函数都具有且只有一个 Closure 对象，最终这个 Closure 将会代替父函数的 LE 出现在子函数[[scopes]]中。
+
+## this
+
+**为什么需要 this： this 机制提供了更优雅的方式来隐含地“传递”一个对象引用，导致更加干净的 api 设计和更容易的复用。**
+
+### this 使用上的误区，困惑。
+
+1. 常见的认为 this 指向函数自己，但并非如此。
+2. this 不会以任何方式指向函数的 词法作用域。
+3. this 不是编写时绑定，而是运行时绑定，它依赖于函数调用的上下文条件。this 绑定与函数声明的位置没有任何关系，而与函数被调用的方式紧密相连。
+
+### this 绑定规则
+
+1. **默认绑定，**使用不带任何修饰符的函数直接调用。 tips： use strict（严格模式）默认绑定下 严格模式在函数内 this 绑定上生效 默认绑定此时是不合法的，但在调用点时生效默认绑定依然时生效的。
+
+2. **隐含绑定，**调用位置是否存在上下文。tips ：对象属性引用链的最后一层是影响调用点的。**隐含丢失：**隐含绑定丢失了它的绑定会退回到默认绑定。
+
+3. **明确绑定，**通过 call()，apply()强制改变指向。tips：明确绑定不能解决 函数“丢失”自己原本的 this 绑定，或者被第三方框架覆盖，硬绑定可以解决这个问题。**硬绑定：**bind()
+
+4. **new 绑定**
+   - 一个全新的对象会凭空创建（就是构建）
+   - 这个新构建的对象会被接入原型链
+   - 这个新构建的对象被设置为函数调用的 this 绑定
+   - 除非函数返回一个它自己的其他对象，否则这个被 new 调用的函数将自动返回这个新构建的对象。
+
+this 绑定规则的优先级按倒序排序。
+与四种绑定规则不同，ES6 的箭头函数使用词法作用域来决定 this 绑定，这意味着它们采用封闭他们的函数调用作为 this 绑定（无论它是什么）。 它们实质上是 ES6 之前的 self = this 代码的替代品。

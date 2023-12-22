@@ -1,0 +1,51 @@
+.title {
+    font-size: 17px;
+    margin-bottom: 16px;
+
+    :global {
+        span {
+            margin-right: 12px;
+        }
+
+        .blue {
+            color: rgb(6 182 212);
+        }
+
+        .purple {
+            color: rgb(217 70 239);
+        }
+
+        .green {
+            color: rgb(34 197 94);
+        }
+    }
+}
+
+.input {
+    width: 100%;
+    margin-bottom: 20px;
+
+    .home_input {
+        margin-left: 12px;
+        border: none;
+    }
+
+    .home_input:focus-visible {
+        outline: none;
+    }
+
+    .input-navigation {
+        font-size: 20px;
+        color: rgb(34 197 94);
+    }
+
+    input {
+        font-size: 100%;
+        width: 100%;
+    }
+
+    .input-box {
+        display: flex;
+        width: 100%;
+    }
+}

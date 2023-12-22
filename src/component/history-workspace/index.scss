@@ -1,0 +1,55 @@
+.listComp {
+    width: 50%;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    column-gap: 3rem;
+    row-gap: 1rem;
+    color: rgb(34, 197, 94);
+  
+    :global {
+      .list-comp-item {
+        cursor: pointer;
+      }
+    }
+  }
+  
+  .histortyContent {
+    margin-bottom: 48px;
+    margin-left: 25px;
+  }
+  
+  .errorComp {
+    color: rgb(239 68 68);
+    margin-bottom: 48px;
+    margin-left: 25px;
+  }
+  
+  .helpComp {
+    :global {
+      ul {
+        padding: 0;
+      }
+      li {
+        display: flex;
+        flex-direction: row;
+        list-style: none;
+        margin-bottom: 12px;
+      }
+      .help-title {
+        margin-bottom: 32px;
+      }
+  
+      .help-content-left {
+        color: rgb(244 63 94);
+        font-weight: 700;
+        flex-basis: 16.666667%;
+      }
+  
+      .help-content-right-conmponent {
+        margin-bottom: 8px;
+      }
+      .help-comp-title {
+        margin-bottom: 32px;
+      }
+    }
+  }

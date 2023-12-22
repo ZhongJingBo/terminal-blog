@@ -1,0 +1,29 @@
+.markdownPage {
+    color: #5d6b73;
+    :global {
+      h1 {
+        color: #333;
+      }
+      h2 {
+        color: #333;
+      }
+      h3 {
+        color: #333;
+      }
+      code {
+        color: #333;
+      }
+      strong {
+        color: #333;
+      }
+      li{
+          margin-top: 8px;
+          margin-bottom: 8px;
+          line-height: 1.75rem;
+      }
+      p{
+          margin-bottom: 30px;
+          line-height: 1.75rem;
+      }
+    }
+  }
