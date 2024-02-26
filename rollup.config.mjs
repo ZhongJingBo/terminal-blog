@@ -18,7 +18,6 @@ export default {
   output: {
     file: "./dist/bundle.js",
     format: "es",
-    inlineDynamicImports: true // 内联动态导入
   },
   plugins: [
     clear(["dist"]),
@@ -66,6 +65,5 @@ export default {
       target: "./dist/index.html",
     }),
   ],
-
 };
 

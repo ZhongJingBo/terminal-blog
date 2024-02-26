@@ -1,10 +1,8 @@
-import React, { FC, useState, useEffect } from "react";
+import React, { FC } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneLight } from "react-syntax-highlighter/dist/cjs/styles/prism";
+import Post from "../../md/demo.mdx";
 import styles from "./index.scss";
-// 根据路由  动态加载mdx组件 封装dynamic组件使用 解决报错信息
-const MyComponentPromise = import("../../md/demo.mdx");
-const MyLazyComponent = React.lazy(() => MyComponentPromise);
 
 const customStyle = {
   padding: 20,
@@ -15,7 +13,7 @@ const customStyle = {
 const Posts: FC = () => {
   return (
     <div className={styles.markdownPage}>
-      <MyLazyComponent
+      <Post
         components={{
           pre(props: any) {
             const { children } = props.children.props;

@@ -71,11 +71,11 @@ function HistortyContent(props: { value: string; onClickCmd: Function }) {
     help: <HelpComp onClickCmd={onClickCmd} />,
   };
 
-  if (!compList?.[value]) {
+  if (! compList?.[value]) {
     return <ErrorComp error={value} />;
   }
 
-
+  // 那种优雅 compList?.[value] ?? <ErrorComp error={value} />
   return <div className={styles.histortyContent}>{compList[value]}</div>;
 }
 
