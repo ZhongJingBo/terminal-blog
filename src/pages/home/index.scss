@@ -1,0 +1,29 @@
+.home {
+    :global {
+      .home-content{
+        padding-top: 40px;
+        padding-bottom: 64px;
+      }
+      .home_input {
+        margin-left: 12px;
+        border: none;
+      }
+  
+      .home_input:focus-visible {
+        outline: none;
+      }
+  
+      .input-navigation{
+        font-size: 20px;
+        color: rgb(34 197 94);
+      }
+  
+      input{
+        font-size: 100%;
+      }
+  
+      .input-box{
+        display: flex;
+      }
+    }
+  }
