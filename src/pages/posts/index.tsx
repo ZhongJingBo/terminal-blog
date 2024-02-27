@@ -5,7 +5,7 @@ import styles from "./index.scss";
 // 根据路由  动态加载mdx组件 封装dynamic组件使用 解决报错信息
 const MyComponentPromise = import("../../md/demo.mdx");
 const MyLazyComponent = React.lazy(() => MyComponentPromise);
-
+// 0.0.2
 const customStyle = {
   padding: 20,
   fontSize: 15,
