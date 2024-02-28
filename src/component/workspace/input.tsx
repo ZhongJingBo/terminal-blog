@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import styles from "./workspace.scss";
+import styles from "./workspace.module.scss";
 import WorkspceTitle from "./workspace-title";
 
 const Input = (props: { onkeydown?: Function; currentClickCmd: string }) => {

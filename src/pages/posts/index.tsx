@@ -1,38 +1,29 @@
-import React, { FC, useState, useEffect } from "react";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneLight } from "react-syntax-highlighter/dist/cjs/styles/prism";
-import styles from "./index.scss";
-// 根据路由  动态加载mdx组件 封装dynamic组件使用 解决报错信息
-const MyComponentPromise = import("../../md/demo.mdx");
-const MyLazyComponent = React.lazy(() => MyComponentPromise);
-// 0.0.2
-const customStyle = {
-  padding: 20,
-  fontSize: 15,
-  fontFamily: "var(--font-family)",
-};
+import React, { FC } from "react";
+import styles from "./index.module.scss";
+import { Link } from "react-router-dom";
+import { POSTSLIST,postsArrType } from "../../constants";
 
 const Posts: FC = () => {
+  // 开发 posts 列表
+
   return (
-    <div className={styles.markdownPage}>
-      <MyLazyComponent
-        components={{
-          pre(props: any) {
-            const { children } = props.children.props;
+    <div className={styles.container}>
+      <main>
+        <h1>2024</h1>
+        <ul>
+          {POSTSLIST.map((item:postsArrType) => {
             return (
-              <SyntaxHighlighter
-                language="javascript"
-                style={oneLight}
-                customStyle={customStyle}
-              >
-                {children}
-              </SyntaxHighlighter>
+              <li key={item.link}>
+                <Link to={item.link}> {item.name}</Link>
+                <div className="text-time">{item.time}</div>
+              </li>
             );
-          },
-        }}
-      />
+          })}
+        </ul>
+      </main>
     </div>
   );
 };
 
 export default Posts;
+

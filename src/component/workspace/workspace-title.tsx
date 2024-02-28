@@ -1,5 +1,5 @@
 import React from "react";
-import styles from  './workspace.scss'
+import styles from  './workspace.module.scss'
 import {CodeIcon} from '../../../public/svg'
 const WorkspceTitle = () => {
   return (

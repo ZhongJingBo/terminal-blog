@@ -53,3 +53,16 @@
       }
     }
   }
+
+
+  .postsHome{
+    li{
+        list-style-type: disc;
+        margin-bottom: 8px;
+        font-weight: 400;
+    }
+    a{
+      text-decoration: none;
+      color: rgb(6, 182, 212);
+    }
+  }

@@ -1,18 +1,34 @@
 import React from "react";
 import Home from "../pages/home";
 import Posts from "../pages/posts";
-  const routers = [
-    {
-      path: "/",
-      element: <Home />,
-    },
-    {
-      path: "/home",
-      element: <Home />,
-    },
-    {
-      path: "/posts",
-      element: <Posts />,
-    },
-  ]
+import Mdx from "../component/Mdx/index";
+import Postspage from "../pages/posts/page";
+
+const routers = [
+  {
+    path: "/",
+    element: <Home />,
+    children: [
+      {
+        path: "/home",
+        element: <Home />,
+      },
+    ],
+  },
+  {
+    path: "/posts",
+    element: <Postspage />,
+    children: [
+      {
+        path: "/posts",
+        element: <Posts />,
+      },
+      {
+        path: "/posts/:id",
+        element: <Mdx />,
+      },
+    ],
+  }
+ 
+];
 export default routers;
