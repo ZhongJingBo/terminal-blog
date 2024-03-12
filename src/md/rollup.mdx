@@ -1,0 +1,392 @@
+### Rollup介绍
+
+Roullp 是基于ES Module 规范的打包工具，Vite生产环境也是使用Rollup作为打包工具，
+
+### 根据配置文件打包
+
+rollup主要包含三个部分 `input` `output` `plugins`
+
+#### input(文件入口)
+
+也就是入口文件的地址，Rollup会根据这个地址来进行查找打包
+
+###### input单入口配置
+
+```javascript
+{
+  input: "src/main.tsx",
+}
+```
+
+###### input多入口配置
+
+```javascript
+{
+    input: ["src/index.js", "src/util.js"]
+}
+```
+
+#### output（出口文件配置）
+
+###### output单产物配置
+
+可以配置包括产物输出目录，输出格式，sourcemap等相关信息
+
+```javascript
+  output: {
+    file: "dist/bundle.js", // 该选项用于指定要写入的文件
+    format: "es", 						//该选项用于指定生成的 bundle 的格式
+    sourcemap: true,				  //boolean | 'inline'| 'hidden'
+  },
+```
+
+###### output多产物配置
+
+如果我们开发的是一个组件库，需要提供多种格式供用户使用可以采取多产物配置
+
+```javascript
+const buildOptions = {
+  input: ["src/index.js"],
+  // 将 output 改造成一个数组
+  output: [
+    {
+      dir: "dist/es",
+      format: "esm",
+    },
+    {
+      dir: "dist/cjs",
+      format: "cjs",
+    },
+  ],
+};
+
+export default buildOptions;
+
+```
+
+###### 多入口单独配置
+
+如果你多个入口文件需要不同的打包配置 我们可以这样配置
+
+```javascript
+export default [
+  {
+    input: 'src/main1.js',
+    output: {
+      dir: 'dist',
+      format: 'umd',
+      name: 'MyLibrary1'
+    }
+  },
+  {
+    input: 'src/main2.js',
+    output: {
+      dir: 'dist',
+      format: 'umd',
+      name: 'MyLibrary2'
+    }
+  }
+];
+
+```
+
+###### output 总结
+
+output可以根据使用需求定制各种输出格式的产物 `amd｜cjs｜ iife｜umd｜system` 更多详细信息可[可以查看此处](https://cn.rollupjs.org/configuration-options/#output-dir)
+
+#### plugins
+
+只使用`rollup`自身的能力，没有办法对更复杂的项目进行打包，同时为了避免`rollup`本身更臃肿复杂引入了插件机制，供使用者按需引入，以下将会介绍一些常用的`plugins`
+`@rollup/plugin-commonjs` 将commonjs转换为ESM
+`@rollup/plugin-node-resolve` 帮助rollup解析node.js模块
+`@rollup/plugin-json` 支持json
+`@rollup/plugin-replace` 支持遍历字符串替换
+`rollup-plugin-esbuild` 可以同时代替 @rollup/plugin-typescript2 和 @rollup/plugin-babel插件
+
+#### React-TypeScript 打包配置
+
+下面的配置是根据`React-ts`项目做的完整打包配置
+需要`MDX`的话可以额外配置`@mdx-js/rollup`
+使用`React-router-dom`动态路由需要配置`@rollup/plugin-dynamic-import-vars`
+
+```javascript
+import commonjs from "@rollup/plugin-commonjs";
+import replace from "@rollup/plugin-replace";
+import serve from "rollup-plugin-serve";
+import htmlTemplate from "rollup-plugin-generate-html-template";
+import clear from "rollup-plugin-clear";
+import esbuild from "rollup-plugin-esbuild";
+import livereload from "rollup-plugin-livereload";
+import postcss from "rollup-plugin-postcss";
+import resolve from "@rollup/plugin-node-resolve";
+import json from "@rollup/plugin-json";
+import progress from "rollup-plugin-progress";
+export default {
+  input: "src/main.tsx",
+  output: {
+    file: "./dist/bundle.js",
+    format: "es",
+    sourcemap: true,
+    inlineDynamicImports: true, 
+  },
+  plugins: [
+    clear(["dist"]),
+    json(),
+    commonjs(),
+    resolve({
+      extensions: [".mjs", ".js", ".json", ".ts", ".tsx"],
+    }),
+    esbuild({
+      include: /\.[jt]sx?$/,
+      sourceMap: true,
+      target: "es2015",
+      tsconfig: "tsconfig.json",
+      jsxFactory: "React.createElement", 
+      jsxFragment: "React.Fragment", 
+    }),
+    postcss({
+      extensions: [".css"],
+      extract: true,
+      modules: true,
+    }),
+    replace({
+      preventAssignment: true,
+      process.env.NODE_ENV: JSON.stringify("production"),
+    }),
+    progress({
+      default: true,
+    }),
+    // terser(), 线上开启
+    serve({
+      open: true,
+      contentBase: ["dist"],
+      historyApiFallback: true,
+      port: 8080,
+    }),
+    livereload(),
+    htmlTemplate({
+      template: "./src/index.html",
+      target: "./dist/index.html",
+    }),
+  ],
+};
+
+```
+
+
+### JavaScript API方式调用
+
+> 当你对构建有更多定制化的需求或者rollup只是你构建中的一环的时候 你可以使用这种方法
+
+在大多数情况下我们只需要关注三个API  `rollup.rollup`   `bundle.write`   `rollup.watch`
+
+`rollup.rollup`接收一个对象 包括`inputOptions` 和 `plugins`组成，会返回一个promise对象，promise会解析为一个`bundle`对象。
+我们可以使用生成的`bundle`对象进行磁盘写入也就是这个API `bundle.write`
+所以我们用`JavaScript`的方式打包同样的`TS-React`项目
+
+```javascript
+import { rollup } from "rollup";
+import commonjs from "@rollup/plugin-commonjs";
+import replace from "@rollup/plugin-replace";
+import serve from "rollup-plugin-serve";
+import fs from "fs";
+import clear from "rollup-plugin-clear";
+import esbuild from "rollup-plugin-esbuild";
+import livereload from "rollup-plugin-livereload";
+import postcss from "rollup-plugin-postcss";
+import resolve from "@rollup/plugin-node-resolve";
+import dynamicImportVars from "@rollup/plugin-dynamic-import-vars";
+import mdx from "@mdx-js/rollup";
+import json from "@rollup/plugin-json";
+import progress from "rollup-plugin-progress";
+import html from "@rollup/plugin-html";
+
+const build = async () => {
+  const bundle = await rollup({
+    input: "src/main.tsx",
+    plugins: [
+      clear(["dist"]),
+      mdx(),
+      json(),
+      commonjs(),
+      resolve({
+        extensions: [".mjs", ".js", ".json", ".ts", ".tsx"],
+      }),
+      esbuild({
+        include: /\.[jt]sx?$/,
+        sourceMap: true,
+        target: "es2015",
+        tsconfig: "tsconfig.json",
+        jsxFactory: "React.createElement",
+        jsxFragment: "React.Fragment",
+      }),
+      postcss({
+        extensions: [".css"],
+        extract: true,
+        modules: true,
+      }),
+
+      replace({
+        preventAssignment: true,
+        process.env.NODE_ENV: JSON.stringify("production"),
+      }),
+      progress({
+        default: true,
+      }),
+      dynamicImportVars(),
+      // terser(), 线上开启
+      html({
+        fileName: "index.html",
+        template: () => {
+          // 读取外部 HTML 模板文件
+          const templateContent = fs.readFileSync("index.html", "utf-8");
+          return templateContent;
+        },
+      }),
+      serve({
+        open: true,
+        contentBase: ["dist"],
+        historyApiFallback: true,
+        port: 8080,
+      }),
+      livereload(),
+    ],
+  });
+  const outputOptions = {
+    file: "./dist/bundle.js",
+    format: "es",
+    sourcemap: true,
+    inlineDynamicImports: true,
+  };
+
+  return await bundle.write(outputOptions);
+};
+
+console.log("开始编译");
+await build();
+console.log("编译完成");
+
+```
+
+`wacth`其实也很简单接收`watchOption`的配置，返回一个`watcher` ，可以监听`wach`的事件。
+
+```javascript
+import { watch } from "rollup";
+import commonjs from "@rollup/plugin-commonjs";
+import replace from "@rollup/plugin-replace";
+import serve from "rollup-plugin-serve";
+import fs from "fs";
+import clear from "rollup-plugin-clear";
+import esbuild from "rollup-plugin-esbuild";
+import livereload from "rollup-plugin-livereload";
+import postcss from "rollup-plugin-postcss";
+import resolve from "@rollup/plugin-node-resolve";
+import dynamicImportVars from "@rollup/plugin-dynamic-import-vars";
+import mdx from "@mdx-js/rollup";
+import json from "@rollup/plugin-json";
+import progress from "rollup-plugin-progress";
+import html from "@rollup/plugin-html";
+
+const watchBuild = () => {
+  const watcher = watch({
+    input: "src/main.tsx",
+    output: {
+      file: "./dist/bundle.js",
+      format: "es",
+      sourcemap: true,
+      inlineDynamicImports: true,
+    },
+    plugins: [
+      clear(["dist"]),
+      mdx(),
+      json(),
+      commonjs(),
+      resolve({
+        extensions: [".mjs", ".js", ".json", ".ts", ".tsx"],
+      }),
+      esbuild({
+        include: /\.[jt]sx?$/,
+        sourceMap: true,
+        target: "es2015",
+        tsconfig: "tsconfig.json",
+        jsxFactory: "React.createElement",
+        jsxFragment: "React.Fragment",
+      }),
+      postcss({
+        extensions: [".css"],
+        extract: true,
+        modules: true,
+      }),
+
+      replace({
+        preventAssignment: true,
+        process.env.NODE_ENV: JSON.stringify("production"),
+      }),
+      progress({
+        default: true,
+      }),
+      dynamicImportVars(),
+      // terser(), 线上开启
+      html({
+        fileName: "index.html",
+        template: () => {
+          // 读取外部 HTML 模板文件
+          const templateContent = fs.readFileSync("index.html", "utf-8");
+          return templateContent;
+        },
+      }),
+      serve({
+        open: true,
+        contentBase: ["dist"],
+        historyApiFallback: true,
+        port: 8080,
+      }),
+      livereload(),
+    ],
+  });
+
+  watcher.on("restart", () => {
+    console.log("重新构建...");
+  });
+
+  watcher.on("change", (id) => {
+    console.log("发生变动的模块id: ", id);
+  });
+};
+
+
+watchBuild()
+```
+
+### 总结
+
+#### 优点
+
+1. Rollup具备使用简单，输出结果更加扁平
+2. 自动移除未引用的代码（Tree-Shaking）
+3. 编译后代码完全可读等优点，
+
+#### 缺点
+
+1. 无法实现HMR
+2. 浏览器环境实现代码拆分要使用AMD库（待验证）
+
+#### 与wabpack对比
+
+Rollup更适合作为类库或框架的打包工具，webpack更适合作为大型应用的打包工具，两者更多是互补而非竞争关系。
+如果想要查找rollup的插件列表可以单击这个[链接](https://github.com/rollup/awesome?tab=readme-ov-file)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

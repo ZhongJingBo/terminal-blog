@@ -1,0 +1,65 @@
+
+
+
+.markdownPage {
+  color: #5d6b73;
+  :global {
+    h1 {
+      color: #333;
+    }
+    h2 {
+      color: #333;
+    }
+    h3 {
+      color: #333;
+    }
+    code {
+      color: #333;
+    }
+    strong {
+      color: #333;
+    }
+    li {
+      margin-top: 8px;
+      margin-bottom: 8px;
+      line-height: 1.75rem;
+    }
+    p {
+      margin-bottom: 30px;
+      line-height: 1.75rem;
+    }
+    code {
+      background-color: var( --mdx-backage-color);
+      display: inline;
+      padding: 2px 4px;
+      margin: 1px 3px;
+      border-radius: 4px;
+      font-size: 15px;
+      // border: 1px solid #e7e9e8;
+    }
+    pre code {
+      padding: 0;
+      margin: 0;
+    }
+    a {
+      text-decoration: none;
+      color: rgb(0, 98, 255);
+    }
+    blockquote {
+      position: relative;
+      padding-left: 10px; /* 确保文字不覆盖竖线 */
+      margin-left: 20px; /* 调整块引用的左边距 */
+    }
+
+    blockquote::before {
+      content: "";
+      display: block;
+      width: 3px; /* 竖线宽度 */
+      background-color: var( --mdx-backage-color); /* 竖线颜色 */
+      height: 100%; /* 竖线高度 */
+      position: absolute;
+      left: 0; /* 竖线位置 */
+      top: 0; /* 竖线位置 */
+    }
+  }
+}

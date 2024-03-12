@@ -6,7 +6,7 @@ export const INSTRUCTION = [
     name: "posts",
   },
   {
-    name: "weekly",
+    name: "reprint",
   },
   {
     name: "help",
@@ -28,7 +28,7 @@ export const HELPLIST = [
   { name: "clear", hint: "clear all outputs" },
   { name: "about", hint: "some information about me" },
   { name: "posts", hint: "list all posts" },
-  { name: "weekly", hint: "list all weekly" },
+  { name: "reprint", hint: "list all Reprint" },
 ];
 
 export interface postsArrType {
@@ -39,14 +39,18 @@ export interface postsArrType {
 
 export const POSTSLIST: postsArrType[] = [
   {
+    name: "Rollup基本概念与使用",
+    time: "2024-03-11",
+    link: "rollup",
+  },
+  {
+    name: "看完本篇，教你用Lit实现简单组件开发",
+    time: "2024-02-28",
+    link: "lit",
+  },
+  {
     name: "执行上下文",
     time: "2024-02-27",
     link: "demo",
-  },
-
-  {
-    name: "开发",
-    time: "2024-02-27",
-    link: "demo1",
   },
 ];

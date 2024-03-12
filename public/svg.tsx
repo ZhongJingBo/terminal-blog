@@ -3,7 +3,7 @@ import React from "react";
 export const CodeIcon = () => {
   return (
     <svg
-      style={{ verticalAlign: "middle",marginRight:"6px" }}
+      style={{ verticalAlign: "middle", marginRight: "6px" }}
       viewBox="0 0 1024 1024"
       version="1.1"
       xmlns="http://www.w3.org/2000/svg"
@@ -17,6 +17,26 @@ export const CodeIcon = () => {
         fill="#D946EF"
         p-id="4571"
       ></path>
+    </svg>
+  );
+};
+
+export const ReactIcon = () => {
+  return (
+    <svg
+    style={{ verticalAlign: "sub",color:"#0a7ea4" }}
+      width="20"
+      height="20"
+      viewBox="-10.5 -9.45 21 18.9"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle cx="0" cy="0" r="2" fill="currentColor"></circle>
+      <g stroke="currentColor" stroke-width="1" fill="none">
+        <ellipse rx="10" ry="4.5"></ellipse>
+        <ellipse rx="10" ry="4.5" transform="rotate(60)"></ellipse>
+        <ellipse rx="10" ry="4.5" transform="rotate(120)"></ellipse>
+      </g>
     </svg>
   );
 };

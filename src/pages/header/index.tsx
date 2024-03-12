@@ -5,8 +5,17 @@ const Header: FC = () => {
   return (
     <header className={styles.header}>
       <div>
-        <a className="header_title"> iTerm</a>
+        <a className="header_title"> Blog</a>
       </div>
+    </header>
+  );
+};
+
+export default Header;
+
+export const Nav = () => {
+  return (
+    <div className={styles.nav}>
       <nav className="header_nav">
         <div className="header_nav_item">
           {" "}
@@ -18,16 +27,13 @@ const Header: FC = () => {
         </div>
         <div className="header_nav_item">
           {" "}
-          <NavLink to="/home"> Weekly </NavLink>
+          <NavLink to="/reprint"> Reprint </NavLink>
         </div>
         <div className="header_nav_item">
           {" "}
-          <NavLink to="/home"> About </NavLink>{" "}
+          <NavLink to="/about"> About </NavLink>{" "}
         </div>
       </nav>
-      <div></div>
-    </header>
+    </div>
   );
 };
-
-export default Header;

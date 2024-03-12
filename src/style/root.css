@@ -1,9 +1,11 @@
 #root{
     height: 100vh;
-  
+
 }
 
-
+:root{
+    --mdx-backage-color:#e7e9e8
+}
 li{
     list-style: none;
 }

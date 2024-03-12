@@ -1,0 +1,294 @@
+
+### 1、介绍
+> 在使用Lit之前建议先了解Web Component ，Lit是基于Web Component实现的框架。
+> 本文介绍皆基于`Lit3.1.0版本` 基于`React`的心智来描述`Lit`。
+
+Lit定义组件的方式与`web component`相同使用`customElements.define`来注册自定义元素，代码示例中的`MyElement`通常是传入元素的类。<br />Lit 是基于`web component`实现的框架，使用`Lit`几乎可以构建任何web页面，构建的组件无需考虑任何框架环境，`React`和`Vue`都可以嵌入`Lit`组件，适合有一定状态管理诉求的基础通用组件开发使用。
+```javascript
+if(!customElements.get('my-element',)){
+  customElements.define('my-element', MyElement);
+}
+```
+
+### 2、渲染 
+
+1. 基础渲染方式
+
+Lit的渲染，只需要使用`html`方法用字符串包裹在`render`方法中返回，即可渲染`Dom`元素。定义的变量需要使用`${}`来进行包裹，这一点和大多数框架趋同。<br />对列表进行遍历也和`React`相同，可以使用`map`方法来进行遍历渲染，同样和`React`相同的可以使用函数直接进行渲染。 <br />从其他页面导入组件进行组件化开发也十分便捷，只需要定义另一个组件导入即可。
+```javascript
+import { LitElement, html } from "lit";
+import "./my-header.js";
+const name = "hello Lit";
+const list = [1, 2, 3, 4];
+class MyElement extends LitElement {
+  render() {
+    return html`<p>Hello from my template.${name}</p>
+      ${list.map((item) => {
+        return html`<div>${item}</div>`;
+      })}
+      ${this.divDom()}
+      <my-header></my-header> `;
+  }
+
+  divDom() {
+    return html`<div>divDom</div>`;
+  }
+}
+customElements.define("my-element", MyElement);
+
+```
+```javascript
+import {LitElement, html} from 'lit';
+
+class MyHeader extends LitElement {
+  render() {
+    return html`
+      <header>header</header>
+    `;
+  }
+}
+customElements.define('my-header', MyHeader);
+```
+
+2. slot 插槽
+
+使用普通插槽，只需要在组件中使用`<slot> </slot>`为外部传入的子元素占好位置。
+```javascript
+<my-element>
+  <p>Render me in a slot</p>
+</my-element>
+
+
+
+export class MyElement extends LitElement {
+  protected render() {
+    return html`
+      <p>
+        <slot></slot>
+      </p>
+    `;
+  }
+}
+
+```
+
+使用命名插槽<br />需要为`slot`和传入元素双方共同命名，`<div slot='box'>box </div>` `<slot name='box'> <slot>` , 具备属性`slot`的元素 只会在对应`name`的插槽中渲染，对于需要使用多个`slot`，需要确定对应位置的组件十分必要。
+### 3、状态
+#### 声明状态
+在静态的`properties`类字段中声明属性 , 熟悉`React`的同学可以简单理解为`state`,虽然两者本质并不相同。 
+```javascript
+class MyElement extends LitElement {
+  static properties = {
+    mode: {type: String},
+    data: {attribute: false},
+  };
+
+  constructor() {
+    super();
+    this.data = {};
+  }
+}
+```
+
+#### 状态更新
+
+1. 状态更新过程
+> 状态更新会触发`property`更新周期，模板会随之改变
+
+1、调用组件的`setter`方法。<br />2、`setter`组件调用`requestUpdata`方法。<br />3、比较`property`新旧状态，即（newValue !== oldValue）,有`hasChanged`函数会传入新旧状态调用。<br />4、检测到变化，即会安排异步更新，多次变化只会执行一次。<br />5、调用`updata`方法，更新模板
+
+2. 复杂数据类型更新
+> 需要注意的是 Array 和 Object 类型的数据不会触发更新，即复杂数据类型在上述第三步会判断为false。
+
+在改变`Array`和 `Object`两种数据类型时，可以使用`不可变数据类型`，构建一个新数据改变新数据后再对老数据进行赋值，或者使用`this.requestUpdata`手动触发更新视图。
+
+3. 观察属性和反应属性
+> 观察属性`attribute` 
+
+Lit会为所有公共反应式属性添加观察属性，观察到的属性名称就是属性名会转化为小写。可以用`attribute`<br />创建不同的名字。<br />为了防止属性创建观察属性可以将`attribute`设置为`false` , 这样将不会创建观察属性，属性的变化也不会影响到元素属性  。<br />观察到的属性可以为状态提供初始值 例如：`<my-element myvalue="99"></my-element>`
+> 反应属性 （`reflect`）
+
+当定义 `reflect` 为 `true`时，将会开启反应属性，此时你定义的属性的任何变化都将反应在元素身上，开启后可以直接作用在`css` 和 `DOM Api`
+```javascript
+export class App extends LitElement {
+    static get properties() {
+        return {
+            title: { type: String, reflect: true },
+        }
+    }
+    render() {
+        return html`
+                <div> ${this.title}</div>
+                <Button @click='${() => ( this.name = 'click name' )}'>click</Button>
+        `
+    }
+}
+```
+![image.png](https://cdn.nlark.com/yuque/0/2023/png/21380603/1702221476038-aa1c5903-c518-4e0f-9e0b-42ab82d950d9.png#averageHue=%23f9f8f6&clientId=u3cb14e7e-815f-4&from=paste&height=116&id=DnTU1&originHeight=51&originWidth=328&originalType=binary&ratio=1&rotation=0&showTitle=false&size=4369&status=done&style=none&taskId=u9852f17b-7dc5-4346-baa2-ce19f39bde5&title=&width=747)
+### 4、通信
+
+1. 父向子通信 值传递
+
+与`React`相似的是 直接将需要传递的值通过标签进行传递，`<my-lit props='propsValue'></my-lit>`,需要注意的是不能使用这种方法传递函数。子组件只需要` static properties = {props: {type: String}}`这样定义即可。
+
+2. 父子双向通信  通过事件侦听器来实现
+
+事件侦听器是指通过自定义事件，使用`@`来进行监听。需要注意的是监听的位置的组件需要包裹子组件，详细代码看章节末尾。
+
+3. 通过 addEventListener 事件监听
+
+不做过多介绍与原生的事件监听没有太多区别，需要注意`composed`设置允许在Shadow DOM上派发事件，和<br />`bubbles`选项允许事件沿着 DOM 树向上流动到调度元素的祖先。如果您希望事件能够参与[事件委托](https://lit.dev/docs/components/events/#event-delegation)，那么设置此标志非常重要，详细代码见下文。
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+  </head>
+  <body>
+    <my-component></my-component>
+    <script type="module" src="../src/index.js"></script>
+  </body>
+</html>
+```
+```javascript
+import { LitElement, html } from 'lit';
+import './component/input'
+class MyComponent extends LitElement {
+  createRenderRoot() {
+    const root = super.createRenderRoot();
+    root.addEventListener('mylogin', (e) => {
+      console.log(e.detail,'addEventListener')
+    })
+    return root;
+  }
+  change(e) {
+    console.log(e.detail,'自定义事件')
+  }
+
+  render() {
+    return html`
+          <div @mylogin=${this.change}>这是我的Lit组件 <my-input></my-input> </div>
+      `;
+  }
+}
+
+if (!customElements.get('my-component')) {
+  customElements.define('my-component', MyComponent);
+}
+```
+```javascript
+import { LitElement, html } from 'lit';
+class MyInput extends LitElement {
+    static properties = {
+        value: { type: String },
+        props:{type:Object}
+    };
+    constructor() {
+        super();
+        this.value = '';
+    }
+    render() {
+        return html`
+          <input
+           @input=${(e) => {
+                this.dispatchEvent(new CustomEvent('mylogin',
+                    { bubbles: true, composed: true, cancelable: true, detail: e.target.value }
+                ));
+            }}>input</input>
+      `;
+    }
+}
+
+if (!customElements.get('my-input')) {
+    customElements.define('my-input', MyInput);
+}
+```
+
+### 5、响应事件（表达式）
+> `React`自己实现了一套事件机制，`Lit`是基于原生的实现，两者在表现上相似 但在实现上完全不同。
+
+1. 特性：`html<input .value=${this.itemCount}> == inputEl.value = this.itemCount`
+
+也就是通过`.`操作符，`Lit`帮我们完成了对`input`value 赋值的操作
+
+2. 事件监听器：`html <div @click="${this.onClick}">click<div>`，其实这就类似于调用
+
+`addEventListener`,需要注意的是`React`开发者们习惯了`input`直接使用`onChange`方法来获取数据的变化，这在原生或是`Lit`中都是不行的，[详情可见这里](https://zh.javascript.info/events-change-input)。
+
+```javascript
+import { render, html } from 'lit-html';
+
+class MyComponent {
+  constructor() {
+    this.value = '';
+  }
+
+  render() {
+    return html`
+      <input value=${this.value} @input=${(e) => { this.value = e.target.value; }}>
+    `;
+  }
+}
+```
+在`Lit`框架中关于事件或表达式 很灵活包括 `自定义事件`，`Ref`等等API，更复杂的需要可以自行到[官网查看](https://lit.dev/)。
+### 6、生命周期
+
+`Lit`组件是标准的自定义元素，继承标准自定义元素的生命周期。
+```javascript
+// Create a class for the element
+class MyCustomElement extends HTMLElement {
+  static observedAttributes = ["color", "size"];
+
+  constructor() {
+    // Always call super first in constructor
+    super();
+  }
+
+  connectedCallback() {
+    console.log("Custom element added to page.");
+  }
+
+  disconnectedCallback() {
+    console.log("Custom element removed from page.");
+  }
+
+  adoptedCallback() {
+    console.log("Custom element moved to new page.");
+  }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    console.log(`Attribute ${name} has changed.`);
+  }
+}
+
+customElements.define("my-custom-element", MyCustomElement);
+```
+
+在标准自定义元素生命周期以为，`Lit`自己实现了一套`反应式更新周期`。![image.png](https://cdn.nlark.com/yuque/0/2023/png/21380603/1703303347610-329bd970-4d22-484b-ba05-ea9adabb5f71.png#averageHue=%23eaeaea&clientId=u78569513-d796-4&from=paste&height=323&id=u81f0ab6c&originHeight=273&originWidth=649&originalType=binary&ratio=1&rotation=0&showTitle=false&size=35728&status=done&style=none&taskId=uaf03ba92-bb5e-42a6-ae4d-4a57d3310ff&title=&width=768.5)<br />![image.png](https://cdn.nlark.com/yuque/0/2023/png/21380603/1703303358622-6c2dd7ed-4150-4083-a17c-18bcc8459c1c.png#averageHue=%23ececec&clientId=u78569513-d796-4&from=paste&height=395&id=u8be7c4fb&originHeight=337&originWidth=649&originalType=binary&ratio=1&rotation=0&showTitle=false&size=34470&status=done&style=none&taskId=u56b2c0e9-e27a-4c59-9396-f944739ab7c&title=&width=760.5)<br />![image.png](https://cdn.nlark.com/yuque/0/2023/png/21380603/1703303369139-33f45d18-c2e0-4736-9c68-fd0eabf95221.png#averageHue=%23ededed&clientId=u78569513-d796-4&from=paste&height=239&id=u5753e09c&originHeight=201&originWidth=649&originalType=binary&ratio=1&rotation=0&showTitle=false&size=20486&status=done&style=none&taskId=ud2d145ce-7104-43e2-bfc0-1d23e4aa718&title=&width=770.5)<br />对于反应式属性的初始化会放在`constructor`中进行初始化，`this.requestUpdata()`方法可以强制触发更新,如果你想要在页面初始化时加载请求可以在`firstUpdated`中完成
+
+### 7、Shadow DOM 和 Styles
+> Shadow DOM 是web Component最重要的组成部分之一
+
+`Lit`组件使用`Shadow DOM`来封装DOM ，`Shadow DOM`构建了一种独立的DOM空间，内部元素与样式无法被外部所改变，[更多信息可以看这里](https://developer.mozilla.org/zh-CN/docs/Web/API/Web_components/Using_shadow_DOM)。<br />`Lit`将组件渲染到`renderRoot`，所以如何想要在`Lit`中使用原生的方法获取DOM可以使用`this.renderRoot.querySelector('#box')`这样的方法。<br />样式可以采取`<style></style>`标签的形式引入`css`样式
+```javascript
+import style from './index.css'
+
+render() {
+  return html`
+    <style>
+      /* updated per instance */
+    </style>
+    <div>template content</div>
+  `;
+}
+```
+### 8、总结
+`Lit`适合开发兼容场景更多的基础定制组件开发，适合进行有简单状态管理需求的组件，他的优点和缺点都十分明显，优点在无视任何框架环境，同原生没有差别，即插即用组件不受外部框架影响，缺点同样明显 基础设施相较于`React` 和 `vue`依然缺乏，使用`Lit`搭建大型项目存在学习成本，Shadow DOM 成也萧何败也萧何，内部样式无法被外部修改使得组件开发成本变高。<br />最后需要注意的是在React中使用`Lit`开发的组件请阅读[这篇文章](https://lit.dev/docs/frameworks/react/)
+
+
+
+
+
+

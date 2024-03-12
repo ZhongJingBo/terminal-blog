@@ -13,7 +13,7 @@ const Home = () => {
   };
 
   const containerRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
+  useEffect(() => { 
     containerRef.current?.scrollIntoView({
       behavior: "smooth",
       block: "end",

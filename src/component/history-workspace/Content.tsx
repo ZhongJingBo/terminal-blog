@@ -42,7 +42,7 @@ const HelpComp = (props: { onClickCmd: Function }) => {
       <ul>
         {HELPLIST.map((item) => {
           return (
-            <li>
+            <li key={item.name}>
               <span className="help-content-left">{item.name}</span>
               {item.component === "ListComp" ? (
                 <div>
