@@ -64,13 +64,13 @@ export default {
         return templateContent;
       },
     }),
-    // serve({
-    //   open: true,
-    //   contentBase: ["dist"],
-    //   historyApiFallback: true,
-    //   port: 8080,
-    // }),
-    // livereload(),
+    serve({
+      open: true,
+      contentBase: ["dist"],
+      historyApiFallback: true,
+      port: 8080,
+    }),
+    livereload(),
   ],
 };
 
