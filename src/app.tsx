@@ -12,7 +12,7 @@ const App = () => {
       <Nav/>
       <Header/>
       {ele}
-    </div>
+    </div> 
   );
 };
 
