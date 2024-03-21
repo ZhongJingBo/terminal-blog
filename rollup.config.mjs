@@ -13,6 +13,50 @@ import json from "@rollup/plugin-json";
 import progress from "rollup-plugin-progress";
 import html from "@rollup/plugin-html";
 
+export const basePlugins = [
+  clear({
+    targets: ["dist"], // 指定要清除的输出目录
+  }),
+  replace({
+    preventAssignment: true,
+    "process.env.NODE_ENV": JSON.stringify("production"),
+  }),
+
+  json(),
+  commonjs(),
+  resolve({
+    extensions: [".mjs", ".js", ".json", ".ts", ".tsx"],
+  }),
+  esbuild({
+    include: /\.[jt]sx?$/,
+    sourceMap: true,
+    target: "es2015",
+    tsconfig: "tsconfig.json",
+    jsxFactory: "React.createElement",
+    jsxFragment: "React.Fragment",
+  }),
+
+  postcss({
+    extensions: [".css"],
+    extract: true,
+    modules: true,
+  }),
+  mdx(),
+  dynamicImportVars(),
+  progress({
+    default: true,
+  }),
+  html({
+    fileName: "index.html",
+    template: () => {
+      // 读取外部 HTML 模板文件
+      const templateContent = fs.readFileSync("index.html", "utf-8");
+      return templateContent;
+    },
+  }),
+];
+
+
 export default {
   input: "src/main.tsx",
   output: {
@@ -22,55 +66,15 @@ export default {
     sourcemap: true, // 生成源映射文件
   },
   plugins: [
-    clear({
-      targets: ["dist"], // 指定要清除的输出目录
+    ...basePlugins,
+    serve({
+      open: true,
+      contentBase: ["dist"],
+      historyApiFallback: true,
+      port: 8080,
     }),
-    replace({
-      preventAssignment: true,
-      "process.env.NODE_ENV": JSON.stringify("production"),
-    }),
-
-    json(),
-    commonjs(),
-    resolve({
-      extensions: [".mjs", ".js", ".json", ".ts", ".tsx"],
-    }),
-    esbuild({
-      include: /\.[jt]sx?$/,
-      sourceMap: true,
-      target: "es2015",
-      tsconfig: "tsconfig.json",
-      jsxFactory: "React.createElement",
-      jsxFragment: "React.Fragment",
-    }),
-
-    postcss({
-      extensions: [".css"],
-      extract: true,
-      modules: true,
-    }),
-    mdx(),
-    dynamicImportVars(),
-    progress({
-      default: true,
-    }),
-
-    // terser(), 线上开启
-    html({
-      fileName: "index.html",
-      template: () => {
-        // 读取外部 HTML 模板文件
-        const templateContent = fs.readFileSync("index.html", "utf-8");
-        return templateContent;
-      },
-    }),
-    // serve({
-    //   open: true,
-    //   contentBase: ["dist"],
-    //   historyApiFallback: true,
-    //   port: 8080,
-    // }),
-    // livereload(),
+  
+    livereload(),
   ],
 };
 
