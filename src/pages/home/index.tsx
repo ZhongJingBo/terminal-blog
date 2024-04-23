@@ -3,6 +3,7 @@ import styles from "./index.module.scss";
 import Input from "../../component/workspace/input";
 import HistoryWorkspace from "../../component/history-workspace";
 
+
 const Home = () => {
   const [historyValue, setHistoryValue] = useState<string[]>([]);
   const [currentClickCmd, setCurrentClickCmd] = useState<string>("");

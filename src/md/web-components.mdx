@@ -1,0 +1,258 @@
+# web components基础使用指南
+
+## 什么是web components
+关于官方的解释大家可以去查阅`MDN`，以下均为我个人对`web components`的理解。
+在我看来web components 是原生JS对于组件化，以及模块化的支持，通过web compoents定义的组件使得JS本身可以支持组件化的实现，当然前端发展到今天，有无数好用的生态良好的框架（例如React/Vue）都可以完美的实现组件化开发，那我们为什么还要了解`web compoents`组件呢，其实原因也很简单，就是使用`web components`开发的组件可以无视你当前的环境，这里的当前的环境是指 无论你的项目是React15 还是React18，或者是Vue，都可以运行使用web componets开发的组件，也就是说像一些通用组件或者跨部门，跨公司合作的组件都可以使用web compoents 组件来进行开发，无需考虑环境兼容性。
+
+## web components组成
+web components 由三个种不同的技术组成 分别为 Custom element（自定义元素） Shadow DOM（影子DOM）还有HTML template（HTML模版）。
+接下来将会为你分别介绍着三种不同的技术。
+### Custom element 自定义元素
+想要实现一个自定义元素分为两个步骤
+
+1. 扩展，扩展就是指通过实现一个类并且继承 `HTMLElement` ，这样你就拥有了一个自定义元素。
+```javascript
+class PopupInfo extends HTMLElement {
+  constructor() {
+    super();
+  }
+  // 此处编写元素功能
+}
+```
+
+2. 注册，想要让你的自定义元素可以使用你还需要注册它。第一个参数是你自定义元素的名称，第二个参数是你类的名称
+```javascript
+customElements.define("popup-info", PopupInfo);
+```
+这样一来通过上面的两个例子你就完成了一个自定义元素，你就可以在HTML中通过元素的方式来使用你的`popup-info` 
+```javascript
+<popup-info>
+  <!-- 元素的内容 -->
+</popup-info>
+```
+同时它也具备自己的生命周期，可以通过属性传递的方式获取外部传入的属性值进行处理，这里就不做过多的介绍了，想要开发web components组件，建议使用`Lit框架`来进行开发。这是一个专门用来实现web components 组件开发的库。
+### Shadow DOM 影子DOM
+实现一个完整的组件有一点是十分重要的，就是组件内部的样式不应该和全局的样式产生冲突，所以ShadowDOM 成为了web componets组件的重要组成部分。
+想要使用Shadow DOM也十分简单只需要将mode 设置为 open 即可开启
+```javascript
+const host = document.querySelector("#host");
+const shadow = host.attachShadow({ mode: "open" });
+```
+当然我们也可以通过 shadowRoot 也就是影子DOM的根节点来访问影子元素，具体使用可以参考这个例子
+```javascript
+const host = document.querySelector("#host");
+const shadow = host.attachShadow({ mode: "open" });
+const span = document.createElement("span");
+span.textContent = "I'm in the shadow DOM";
+shadow.appendChild(span);
+
+const upper = document.querySelector("button#upper");
+upper.addEventListener("click", () => {
+  const spans = Array.from(host.shadowRoot.querySelectorAll("span"));
+  for (const span of spans) {
+    span.textContent = span.textContent.toUpperCase();
+  }
+});
+
+const reload = document.querySelector("#reload");
+reload.addEventListener("click", () => document.location.reload());
+
+```
+### HTML template HTML模版
+关于web components 和`template` 的联系就在于通过 `Element.attachShadow`将template作为ShdowDOM添加到我们的自定义元素上。在这里还有一个`slot`的用法需要关注一下，当然了解大家对于这种用法当然不会陌生，这里就不做过多的介绍了。
+只需要仔细阅读下面的用法你就会了解template 和 Custom element 的联系
+```javascript
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Web Components</title>
+  </head>
+  <body>
+    <custom-template>
+        <span slot="my-text">让我们使用一些不同的文本！</span>
+    </custom-template>
+
+    <template id="custom-template">
+      <style>
+        button {
+          background-color: #409eff;
+          border-color: #409eff;
+          color: #fff;
+        }
+      </style>
+      <button>自定义按钮</button>   
+      <p>一些关于template的内容</p>
+      <slot name="my-text"><p>None</p></slot>
+    </template>
+
+    <script>
+      class Customtemplate extends HTMLElement {
+        constructor() {
+          super();
+          const templateContent =
+            document.getElementById("custom-template").content;
+          const shadowRoot = this.attachShadow({ mode: "open" });
+          shadowRoot.appendChild(templateContent.cloneNode(true));
+        }
+
+        connectedCallback() {
+          console.log("connected");
+        }
+      }
+      customElements.define("custom-template", Customtemplate);
+    </script>
+  </body>
+</html>
+
+```
+
+## 生命周期
+web components 自定义元素拥有自己的生命周期
+
+1. connectedCallback 自定义元素第一次连接到DOM被调用 （可以理解为初始化）
+2. disconnectedCallback 自定义元素与DOM断开连接时调用 （可以理解为页面销毁前做一些操作处理）
+3. adoptedCallback 当自定义元素被移动到新文档时被调用。
+4. attributeChangedCallback 当自定义元素的一个属性被增加、移除或更改时被调用。（也就是页面发生改变时会调用）
+```javascript
+// 为这个元素创建类
+class MyCustomElement extends HTMLElement {
+  static observedAttributes = ["color", "size"];
+
+  constructor() {
+    // 必须首先调用 super 方法
+    super();
+  }
+
+  connectedCallback() {
+    console.log("自定义元素添加至页面。");
+  }
+
+  disconnectedCallback() {
+    console.log("自定义元素从页面中移除。");
+  }
+
+  adoptedCallback() {
+    console.log("自定义元素移动至新页面。");
+  }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    console.log(`属性 ${name} 已变更。`);
+  }
+}
+
+customElements.define("my-custom-element", MyCustomElement);
+
+```
+## 如何应用web components
+单纯的使用原生web compoents开发只会降低我们的开发效率，与过往的原生JS开发没有任何区别，所以想要使用好web components 我们也需要配合一些工具进行开发。
+首先推荐的web componets 开发方式就是 使用`Lit`来进行开发，这是一个基于web components来实现的快速开发web组件的库。
+其次可以使用React的方式，通过web components组件包装的形式来进行开发
+```javascript
+// index.js
+import React from 'react'
+import ReactDOM from 'react-dom'
+import Comp from './comp.jsx'
+
+class WebComp extends HTMLElement{
+    connectedCallback(){
+        ReactDOM.render(<Comp/>,this)
+    }
+}   
+
+if(!customElements.get('web-components')){
+    customElements.define('web-components',WebComp)
+}
+
+
+// comp.jsx
+import React from "react";
+export default () => {
+  return (
+    <>
+      <div
+        onClick={() => {
+          console.log('react onClick');
+          alert('react onClick')
+        }}
+      >
+        <button>
+              web components - React
+        </button>
+      </div>
+    </>
+  );
+};
+```
+
+```html
+//index.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+    <web-component></web-component>
+    <script src="./dist//bundle.js"></script>
+</body>
+</html>
+```
+也就是这种方式组件内部开发使用React的方式，通过web components进行包裹实现。这种方式规避了书写原生JS效率低下的问题。
+下面附上我的打包逻辑，跟正常打包React代码没有什么区别
+```javascript
+// rollup.config.js
+
+import resolve from '@rollup/plugin-node-resolve'; // 用于解析 npm 包中的模块
+import commonjs from '@rollup/plugin-commonjs'; // 将 CommonJS 模块转换为 ES6
+import babel from '@rollup/plugin-babel'; // 使用 Babel 转换代码
+import { terser } from 'rollup-plugin-terser'; // 用于压缩代码
+import replace from '@rollup/plugin-replace'; // 替换代码中的字符串
+
+
+export default {
+  input: 'index.js', // 入口文件
+  output: {
+    file: 'dist/bundle.js', // 输出文件
+    format: 'iife', // 输出格式，这里使用立即执行函数表达式
+    sourcemap: true, // 生成 source map 文件
+  },
+  plugins: [
+    resolve(), // 解析 npm 模块
+    babel({ // 使用 Babel 转换代码
+      babelHelpers: 'bundled', // 使用捆绑的帮助程序函数
+      exclude: 'node_modules/**', // 不要转换 node_modules 中的代码
+      presets: ['@babel/preset-react'] // 使用 React preset
+    }),
+    commonjs(), // 将 CommonJS 模块转换为 ES6
+    replace({
+        'process.env.NODE_ENV': JSON.stringify('production') // 在此处替换环境变量
+      }),
+    terser() // 压缩代码
+  ]
+};
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

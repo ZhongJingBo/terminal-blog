@@ -71,7 +71,7 @@ export default {
       open: true,
       contentBase: ["dist"],
       historyApiFallback: true,
-      port: 8080,
+      port: 8082,
     }),
   
     livereload(),

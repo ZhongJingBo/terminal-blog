@@ -1,0 +1,209 @@
+# 从构建开始的Lit开发
+> 如果对`Lit`还没有基础的了解可以看我之前的文章
+> 实际上使用基础JS开发`Lit`还是有些过于繁琐，同时我认为装饰器是`Lit`的重要组成部分，所以本篇将会为您介绍基于`babel`装饰器的`Lit`开发
+
+
+## 1.构建
+首先看到这里我将会默认您对`Lit`已经有了基础的了解了，所以我将不会对`Lit`的基础语法有过多的介绍。
+总所周知，原生JS是不支持装饰器的语法的，目前JS装饰器语法还在提案中，所以我们需要在打包的过程中使我们装饰器的代码编译为原生JS代码。这就需要用到`babel`
+
+     [@babel/plugin-proposal-decorators](https://babeljs.io/docs/en/babel-plugin-proposal-decorators)从版本 7.23 开始，[Babel](https://babeljs.io/docs/en/)通过插件支持标准装饰器。 Babel 不支持 TypeScript 实验性装饰器，因此您必须使用具有[标准装饰器语法](https://lit.dev/docs/components/decorators/#standard-decorators)`accessor`的 Lit 装饰器，并在装饰类字段上使用关键字。
+```javascript
+// babel.config.json
+{
+  "plugins": [
+    ["@babel/plugin-proposal-decorators", {"version": "2023-05"}]
+  ]
+}
+注意：、Lit装饰器仅适用于"version": "2023-05"."2018-09"不支持其他版本，包括以前支持的版本。
+```
+如果你使用TypeScript来进行开发的话，`TS`是支持装饰器语法的不需要做额外的编译
+
+所以接下来我们使用`Vite`来打包构建项目
+```javascript
+//vite.config.js
+import { defineConfig } from "vite";
+import babel from "vite-plugin-babel";
+import litCss from "vite-plugin-lit-css";
+
+export default defineConfig({
+  build: {
+    outDir: "./dist",
+  },
+  plugins: [
+    litCss(),
+    babel({
+      babelConfig: {
+        babelrc: false,
+        configFile: false,
+        plugins: [
+          ["@babel/plugin-proposal-decorators", { version: "2023-05" }],
+          "@babel/plugin-transform-class-static-block",
+          "@babel/plugin-proposal-class-properties",
+        ],
+      },
+    }),
+  ],
+});
+```
+通过上面代码的构建我们就可以在开发的过程中使用装饰器的语法来进行开发了。
+## 
+## 实现简单todoList
+### 实现简单列表
+首先我们需要先注册一个`web Components`组件，使用装饰器的语法是十分简单的,只需要通过装饰器定义即可。
+```javascript
+@customElement("todo-list")
+export class TodoList extends LitElement {}
+```
+
+接下来让我们渲染这个简单列表
+```javascript
+import { LitElement, css, html } from "lit";
+import { customElement, state } from "lit/decorators.js";
+@customElement("todo-list")
+export class TodoList extends LitElement {
+  @state()
+  accessor textList = ["tdo1",'todo2', "todo3"];
+  render() {
+    return html`
+        <ul>
+        ${this.textList.map((item,index) => {
+          return html`<li>${item}</li> `;
+        })}
+      </ul>
+    `;
+  }
+}
+```
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lit demo</title>
+  </head>
+  <body>
+    <todo-list></todo-list>
+    <script type="module" src="/src/index.js"></script>
+  </body>
+</html>
+```
+这样一来我们的列表就渲染在的浏览器上，通过上面的例子我为你介绍几个关于Lit的`API`
+`@state()` 内部反应状态，通常来说我们都可以使用`@state`来定义我们的变量
+`html`将模版的文字解释为HTML模版，也就是说我们需要渲染的`Dom 元素`都需要通过字符串包裹交由`html`来进行处理。
+ 
+### 接下来就让我们正式的实现todoList
+为了让整个组件看起来更清晰，我们新建`component`文件夹，将`input`和列表各自拆分为独立的组件
+在`component`中新建 `data-list.js`和`input.js`
+在`input组件`中实现对列表数据的添加
+```javascript
+import { LitElement, css, html } from "lit";
+import { customElement, state } from "lit/decorators.js";
+
+@customElement("todo-list-input")
+  export class SimpleGreeting extends LitElement {
+    @state()
+    accessor onClick;
+
+    @state()
+    accessor text = "";
+
+    render() {
+      return html`
+      <input
+        .value=${this.text}
+        @input=${(e) => {
+          this.text = e.target.value;
+        }}
+      />
+
+      <button
+        @click=${() => {
+          this.onClick(this.text);
+          this.text = "";
+        }}
+      >
+        add
+      </button>
+    `;
+    }
+  }
+```
+
+`data-list组件`实现数据的渲染和删除逻辑
+```javascript
+import { LitElement, css, html } from "lit";
+import { customElement, state } from "lit/decorators.js";
+
+@customElement("todo-data-list")
+export class DataList extends LitElement {
+  @state()
+  accessor textList;
+
+  @state()
+  accessor del;
+  
+  render() {
+    return html`
+      <ul>
+        ${this.textList.map((item,index) => {
+          return html`<li>${item} <button @click=${()=>{
+            this.del(index)
+          }}>del</button></li> `;
+        })}
+      </ul>
+    `;
+  }
+}
+```
+
+接下来就是`index组件`,负责数据的流向管理
+```javascript
+import { LitElement, css, html } from "lit";
+import { customElement, state } from "lit/decorators.js";
+import "./component/input";
+import "./component/data-list";
+@customElement("todo-list")
+export class TodoList extends LitElement {
+  @state()
+  accessor textList = ["tdo1",'todo2', "todo3"];
+
+  add(text) {
+    const arr = JSON.parse(JSON.stringify(this.textList));
+    arr.push(text);
+    this.textList = arr;
+  }
+
+  del(index){
+    const arr =  JSON.parse(JSON.stringify(this.textList)) 
+     arr.splice(index,1)
+    this.textList = arr
+  }
+
+  render() {
+    return html`
+      <div>
+        <todo-list-input
+          .onClick=${(val) => {
+            this.add(val);
+          }}
+        ></todo-list-input>
+        <todo-data-list .textList=${this.textList} .del=${(val)=>{
+
+           this.del(val) 
+        }}></todo-data-list>
+      </div>
+    `;
+  }
+}
+```
+![iShot_2024-04-20_15.50.04.gif](https://cdn.nlark.com/yuque/0/2024/gif/21380603/1713599473387-0ade29f1-4fef-48bc-a143-58caa6e21d64.gif#averageHue=%23fafafa&clientId=udb4352fd-70f7-4&from=drop&height=327&id=apGEB&originHeight=206&originWidth=320&originalType=binary&ratio=2&rotation=0&showTitle=false&size=140750&status=done&style=none&taskId=ub2189bd0-d30f-4f0c-bf4f-cbc28c9118e&title=&width=508)
+
+自此通过这里例子我们实现了一个Lit组件完整的数据双向绑定和组件之间的父子通信。
+
+
+
+
+

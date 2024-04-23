@@ -10,10 +10,12 @@ npm run build
 cd dist
 
 git init
+git checkout -b master
 git add -A
 git commit -m 'deploy'
 
 # 如果发布到 https://<USERNAME>.github.io/<REPO>
-git push -f root@121.43.53.54/:/home/www/website/ts.git master
+
+git push -f root@121.43.53.54:/home/www/website/blog.git master
 
 cd -

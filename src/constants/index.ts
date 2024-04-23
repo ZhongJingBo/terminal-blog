@@ -44,13 +44,19 @@ export const POSTSLIST: postsArrType[] = [
     link: "rollup",
   },
   {
+    name: "从构建开始的Lit开发",
+    time: "2024-02-28",
+    link: "lit-pro",
+  },
+  {
     name: "看完本篇，教你用Lit实现简单组件开发",
     time: "2024-02-28",
     link: "lit",
   },
+
   {
-    name: "执行上下文",
-    time: "2024-02-27",
-    link: "demo",
+    name: "web components基础使用指南",
+    time: "2024-04-23",
+    link: "web-components",
   },
 ];
