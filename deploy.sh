@@ -1,10 +1,10 @@
 #!/usr/bin/env sh
 
-# 确保脚本抛出遇到的错误
-set -e
+# # 确保脚本抛出遇到的错误
+# set -e
 
-# 生成静态文件
-npm run build
+# # 生成静态文件
+# npm run build
 
 # 进入生成的文件夹
 cd dist
@@ -18,4 +18,4 @@ git commit -m 'deploy'
 
 git push -f root@121.43.53.54:/home/www/website/blog.git master
 
-cd -
+# cd -
