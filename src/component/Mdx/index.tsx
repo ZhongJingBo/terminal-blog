@@ -1,19 +1,20 @@
-import React from "react";
+import React, { useEffect , useState} from "react";
 import DynamicComponent from "../dynamic";
 import { useParams } from "react-router-dom";
+import { getNoteDetail, NoteItem } from "../../service/index";
 
-// 控制加载逻辑
-const customStyle = {
-  padding: 20,
-  fontSize: 15,
-  fontFamily: "var(--font-family)",
-};
 const Posts = () => {
   const { id } = useParams();
-  const MyComponentPromise = import(`../../md/${id}.mdx`);
+  const [noteDetail, setNoteDetail] = useState<NoteItem>();
+  useEffect(() => {
+    getNoteDetail(id || "").then((res: NoteItem) => {
+      setNoteDetail(res);
 
-  // 错误拦截
-  return <DynamicComponent loader={MyComponentPromise} />;
+    });
+  }, []);
+
+
+  return <DynamicComponent content={noteDetail?.content} title={noteDetail?.title} createdAt={noteDetail?.createdAt} updatedAt={noteDetail?.updatedAt}  />;
 };
 
 export default Posts;

@@ -1,4 +1,4 @@
-import {basePlugins} from './rollup.config.mjs'
+import { basePlugins } from './rollup.config.mjs'
 import terser  from '@rollup/plugin-terser'
 
 export default {

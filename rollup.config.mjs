@@ -1,6 +1,5 @@
 import commonjs from "@rollup/plugin-commonjs";
 import replace from "@rollup/plugin-replace";
-import serve from "rollup-plugin-serve";
 import fs from "fs";
 import clear from "rollup-plugin-clear";
 import esbuild from "rollup-plugin-esbuild";
@@ -12,7 +11,7 @@ import mdx from "@mdx-js/rollup";
 import json from "@rollup/plugin-json";
 import progress from "rollup-plugin-progress";
 import html from "@rollup/plugin-html";
-
+import dev from "rollup-plugin-dev";
 export const basePlugins = [
   clear({
     targets: ["dist"], // 指定要清除的输出目录
@@ -37,9 +36,10 @@ export const basePlugins = [
   }),
 
   postcss({
-    extensions: [".css"],
+    extensions: [".css", ".scss", ".sass"],
     extract: true,
     modules: true,
+    use: ['sass']
   }),
   mdx(),
   dynamicImportVars(),
@@ -56,7 +56,6 @@ export const basePlugins = [
   }),
 ];
 
-
 export default {
   input: "src/main.tsx",
   output: {
@@ -67,15 +66,15 @@ export default {
   },
   plugins: [
     ...basePlugins,
-    serve({
-      open: true,
-      contentBase: ["dist"],
-      historyApiFallback: true,
-      port: 8082,
+    dev({
+      dirs: ["dist"],
+      host: "localhost",
+      port: 8083,
+      force: true,
+      spa: true,
+      server: { connectionTimeout: 3000 },
+      proxy: [{ from: "/api", to: "http://postforge.zhongzhong.top/" }],
     }),
-  
     livereload(),
   ],
 };
-
-

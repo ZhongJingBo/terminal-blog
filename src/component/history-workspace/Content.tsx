@@ -1,7 +1,7 @@
 import React from "react";
 import styles from "./index.module.scss";
-import { INSTRUCTION, HELPLIST, POSTSLIST } from "../../constants";
-
+import { INSTRUCTION, HELPLIST } from "../../constants";
+import { useMarkdown } from "../../hooks/MarkdownContext";
 // 索引签名
 interface CompList {
   [key: string]: any;
@@ -63,16 +63,17 @@ const HelpComp = (props: { onClickCmd: Function }) => {
 };
 
 const PostsComp = (props: { onClickCmd: Function }) => {
+  const { noteList, loading, error } = useMarkdown();
   const { onClickCmd } = props;
   return (
     <div className={styles.postsHome}>
       <ul>
-        {POSTSLIST.map((item) => {
+        {noteList.map((item) => {
           return (
-            <li key={item.link}>
-              <a href={`posts/${item.link}`} target="_blank">
+            <li key={item.id}>
+              <a href={`posts/${item.id}`} target="_blank">
                 {" "}
-                {item.name}
+                {item.title}
               </a>
             </li>
           );

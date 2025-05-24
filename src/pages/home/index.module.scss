@@ -26,4 +26,34 @@
         display: flex;
       }
     }
+
+    .noteList {
+      margin-top: 20px;
+      
+      .noteItem {
+        padding: 16px;
+        margin-bottom: 16px;
+        border-radius: 8px;
+        background-color: #f6f8fa;
+        transition: all 0.3s ease;
+        cursor: pointer;
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        h3 {
+          margin: 0 0 8px;
+          font-size: 18px;
+          color: #333;
+        }
+
+        p {
+          margin: 0;
+          font-size: 14px;
+          color: #666;
+        }
+      }
+    }
   }
