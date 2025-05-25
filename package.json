@@ -4,9 +4,9 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "dev": "rollup -wc",
-        "start": "rollup -wc",
-        "build": "rollup -c rollup.config.prod.js",
+        "dev": "cross-env NODE_ENV=development rollup -wc",
+        "start": "cross-env NODE_ENV=development rollup -wc",
+        "build": "cross-env NODE_ENV=production rollup -c rollup.config.prod.js",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "type": "module",

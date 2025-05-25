@@ -12,19 +12,89 @@ import json from "@rollup/plugin-json";
 import progress from "rollup-plugin-progress";
 import html from "@rollup/plugin-html";
 import dev from "rollup-plugin-dev";
+import terser from "@rollup/plugin-terser";
 
-// 定义需要分离的第三方依赖
-const vendorPackages = ['react', 'react-dom', 'react-router-dom', 'marked-react'];
+// 环境变量
+const isProduction = process.env.NODE_ENV === "production";
+
+// 共享的 manualChunks 配置
+export const getManualChunks = (id) => {
+  // 分离 node_modules 中的第三方依赖
+  if (id.includes("node_modules")) {
+    // 基础框架相关
+    if (
+      id.includes("/node_modules/react") ||
+      id.includes("/node_modules/react-dom")
+    ) {
+      return "vendor-react";
+    }
+    // 路由相关
+    if (
+      id.includes("/node_modules/react-router") ||
+      id.includes("/node_modules/react-router-dom")
+    ) {
+      return "vendor-router";
+    }
+    // Markdown 相关
+    if (
+      id.includes("/node_modules/marked-react") ||
+      id.includes("/node_modules/marked")
+    ) {
+      return "vendor-markdown";
+    }
+    // 其他第三方依赖
+    return "vendor";
+  }
+
+  // 分离页面级组件
+  if (id.includes("/src/pages/")) {
+    const match = id.match(/\/src\/pages\/([^/]+)/);
+    if (match && match[1]) {
+      return `page-${match[1]}`;
+    }
+  }
+
+  // 分离组件
+  if (id.includes("/src/component/")) {
+    return "components";
+  }
+
+  // 分离 hooks
+  if (id.includes("/src/hooks/")) {
+    return "hooks";
+  }
+
+  // 其他业务代码
+  if (id.includes("/src/")) {
+    return "main";
+  }
+};
+
+// 共享的输出配置
+export const getOutputConfig = (isProduction) => ({
+  dir: "./dist",
+  format: "es",
+  sourcemap: !isProduction,
+  manualChunks: getManualChunks,
+  chunkFileNames: (chunkInfo) => {
+    if (chunkInfo.name.startsWith("vendor-")) {
+      return "vendor/[name]-[hash].js";
+    }
+    if (chunkInfo.name.startsWith("page-")) {
+      return "pages/[name]-[hash].js";
+    }
+    return "[name]-[hash].js";
+  },
+});
 
 export const basePlugins = [
   clear({
-    targets: ["dist"], // 指定要清除的输出目录
+    targets: ["dist"],
   }),
   replace({
     preventAssignment: true,
-    "process.env.NODE_ENV": JSON.stringify("production"),
+    "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV),
   }),
-
   json(),
   commonjs(),
   resolve({
@@ -32,18 +102,19 @@ export const basePlugins = [
   }),
   esbuild({
     include: /\.[jt]sx?$/,
-    sourceMap: true,
+    sourceMap: !isProduction,
     target: "es2015",
     tsconfig: "tsconfig.json",
     jsxFactory: "React.createElement",
     jsxFragment: "React.Fragment",
+    minify: isProduction,
   }),
-
   postcss({
     extensions: [".css", ".scss", ".sass"],
     extract: true,
     modules: true,
-    use: ['sass']
+    use: ["sass"],
+    minimize: isProduction,
   }),
   mdx(),
   dynamicImportVars(),
@@ -53,7 +124,6 @@ export const basePlugins = [
   html({
     fileName: "index.html",
     template: () => {
-      // 读取外部 HTML 模板文件
       const templateContent = fs.readFileSync("index.html", "utf-8");
       return templateContent;
     },
@@ -62,55 +132,7 @@ export const basePlugins = [
 
 export default {
   input: "src/main.tsx",
-  output: {
-    dir: "./dist",
-    format: "es",
-    sourcemap: true,
-    manualChunks: (id) => {
-      // 分离 node_modules 中的第三方依赖
-      if (id.includes('node_modules')) {
-        // 检查是否是我们定义的需要单独分包的依赖
-        const packageName = vendorPackages.find(pkg => id.includes(`/node_modules/${pkg}`));
-        if (packageName) {
-          return `vendor-${packageName}`;
-        }
-        // 其他第三方依赖打包到 vendor
-        return 'vendor';
-      }
-      
-      // 分离页面级组件
-      if (id.includes('/src/pages/')) {
-        const match = id.match(/\/src\/pages\/([^/]+)/);
-        if (match && match[1]) {
-          return `page-${match[1]}`;
-        }
-      }
-
-      // 分离组件
-      if (id.includes('/src/component/')) {
-        return 'components';
-      }
-
-      // 分离 hooks
-      if (id.includes('/src/hooks/')) {
-        return 'hooks';
-      }
-
-      // 其他业务代码
-      if (id.includes('/src/')) {
-        return 'main';
-      }
-    },
-    chunkFileNames: (chunkInfo) => {
-      if (chunkInfo.name.startsWith('vendor-')) {
-        return 'vendor/[name]-[hash].js';
-      }
-      if (chunkInfo.name.startsWith('page-')) {
-        return 'pages/[name]-[hash].js';
-      }
-      return '[name]-[hash].js';
-    },
-  },
+  output: getOutputConfig(true),
   plugins: [
     ...basePlugins,
     dev({
@@ -122,6 +144,5 @@ export default {
       server: { connectionTimeout: 3000 },
       proxy: [{ from: "/api", to: "http://postforge.zhongzhong.top/" }],
     }),
-    livereload(),
   ],
 };

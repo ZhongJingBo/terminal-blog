@@ -6,8 +6,8 @@ export interface NoteItem {
   updatedAt: string;
 }
 
-// 使用代理路径
-const API_BASE_URL = '/api';
+
+const API_BASE_URL = process.env.NODE_ENV === 'development' ? '/api': 'http://postforge.zhongzhong.top/api';
 
 export const getNoteList = async (): Promise<NoteItem[]> => {
   try {
