@@ -7,7 +7,7 @@ export interface NoteItem {
 }
 
 
-const API_BASE_URL = process.env.NODE_ENV === 'development' ? '/api': 'http://postforge.zhongzhong.top/api';
+const API_BASE_URL = process.env.NODE_ENV === 'development' ? '/api': 'http://postforge.zhongzhong.top';
 
 export const getNoteList = async (): Promise<NoteItem[]> => {
   try {
